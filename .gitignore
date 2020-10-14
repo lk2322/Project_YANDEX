@@ -8,7 +8,7 @@ __pycache__/
 *.so
 
 .env
-
+main.db
 # Distribution / packaging
 .Python
 build/
