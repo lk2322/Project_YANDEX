@@ -37,8 +37,8 @@ def get_user(login):
         user = User.get(User.username == login)
     except Exception:
         return
-    return user
     db.close()
+    return user
 
 
 def create_thread(*usrnames):
@@ -50,7 +50,7 @@ def create_thread(*usrnames):
 
 
 def get_threads(user_id):
-    threads = Thread.select().join(Participant).where(Participant.user_id == user_id)
+    threads = Thread.select().join(Participant).where(Participant.user_id == user_id)ssssssssssssssssssssss
     threads_dict = {}
     for i in threads:
         for j in i.participant:
