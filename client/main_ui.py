@@ -12,7 +12,8 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 
 
 class Ui_Form(object):
-    def setupUi(self, Form):
+    def setupUi(self, Form=QtWidgets.QWidget):
+        self.form = Form
         Form.setObjectName("Form")
         Form.resize(965, 752)
         self.gridLayout = QtWidgets.QGridLayout(Form)
@@ -59,3 +60,4 @@ class Ui_Form(object):
         Form.setWindowTitle(_translate("Form", "Form"))
         self.pushButton_2.setText(_translate("Form", "Добавить"))
         self.pushButton.setText(_translate("Form", "Отправить"))
+
