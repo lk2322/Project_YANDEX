@@ -12,7 +12,8 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 
 
 class Ui_Form(object):
-    def setupUi(self, Form):
+    def __init__(self, Form):
+        self.form = Form
         Form.setObjectName("Form")
         Form.resize(932, 600)
         self.gridLayout = QtWidgets.QGridLayout(Form)

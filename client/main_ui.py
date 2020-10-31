@@ -12,7 +12,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 
 
 class Ui_Form(object):
-    def setupUi(self, Form=QtWidgets.QWidget):
+    def __init__(self, Form):
         self.form = Form
         Form.setObjectName("Form")
         Form.resize(965, 752)
@@ -23,7 +23,7 @@ class Ui_Form(object):
         self.listWidget = QtWidgets.QListWidget(Form)
         self.listWidget.setMaximumSize(QtCore.QSize(200, 16777215))
         self.listWidget.setObjectName("listWidget")
-        self.gridLayout_2.addWidget(self.listWidget, 0, 0, 1, 1)
+        self.gridLayout_2.addWidget(self.listWidget, 1, 0, 1, 1)
         self.horizontalLayout_3 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_3.setObjectName("horizontalLayout_3")
         self.lineEdit_2 = QtWidgets.QLineEdit(Form)
@@ -34,7 +34,10 @@ class Ui_Form(object):
         self.pushButton_2.setMaximumSize(QtCore.QSize(60, 16777215))
         self.pushButton_2.setObjectName("pushButton_2")
         self.horizontalLayout_3.addWidget(self.pushButton_2)
-        self.gridLayout_2.addLayout(self.horizontalLayout_3, 1, 0, 1, 1)
+        self.gridLayout_2.addLayout(self.horizontalLayout_3, 2, 0, 1, 1)
+        self.pushButton_3 = QtWidgets.QPushButton(Form)
+        self.pushButton_3.setObjectName("pushButton_3")
+        self.gridLayout_2.addWidget(self.pushButton_3, 0, 0, 1, 1)
         self.gridLayout.addLayout(self.gridLayout_2, 0, 0, 5, 2)
         self.gridLayout_3 = QtWidgets.QGridLayout()
         self.gridLayout_3.setObjectName("gridLayout_3")
@@ -51,6 +54,14 @@ class Ui_Form(object):
         self.horizontalLayout.addWidget(self.pushButton)
         self.gridLayout_3.addLayout(self.horizontalLayout, 2, 0, 1, 1)
         self.gridLayout.addLayout(self.gridLayout_3, 0, 3, 5, 1)
+        self.listWidget_2.setStyleSheet("""QListWidget::item:selected
+                                            {
+                                                background: rgba(0,0,0,0);
+                                            }
+                                            QListWidget::item:hover
+                                                {
+                                                    background: rgba(0,0,0,0);
+                                                }""")
 
         self.retranslateUi(Form)
         QtCore.QMetaObject.connectSlotsByName(Form)
@@ -59,5 +70,28 @@ class Ui_Form(object):
         _translate = QtCore.QCoreApplication.translate
         Form.setWindowTitle(_translate("Form", "Form"))
         self.pushButton_2.setText(_translate("Form", "Добавить"))
+        self.pushButton_3.setText(_translate("Form", "Выйти из аккаунта"))
         self.pushButton.setText(_translate("Form", "Отправить"))
 
+
+class QCustomQWidget (QtWidgets.QWidget):
+    def __init__(self, parent=None):
+        super(QCustomQWidget, self).__init__(parent)
+        self.textQVBoxLayout = QtWidgets.QVBoxLayout()
+        self.textUpQLabel = QtWidgets.QLabel()
+        self.textDownQLabel = QtWidgets.QLabel()
+        self.textQVBoxLayout.addWidget(self.textUpQLabel)
+        self.textQVBoxLayout.addWidget(self.textDownQLabel)
+        self.allQHBoxLayout = QtWidgets.QHBoxLayout()
+        self.allQHBoxLayout.addLayout(self.textQVBoxLayout, 1)
+        self.setLayout(self.allQHBoxLayout)
+        # setStyleSheet
+        self.textUpQLabel.setStyleSheet('''
+            color: rgb(0, 0, 255);
+        ''')
+
+    def setTextUp(self, text):
+        self.textUpQLabel.setText(text)
+
+    def setTextDown(self, text):
+        self.textDownQLabel.setText(text)

@@ -45,9 +45,6 @@ class Connect:
     def get_threads(self):
         """Return requsts object. obj.json() need
 
-        Args:
-            thread_id (int)
-
         Returns:
             response
         """
@@ -65,6 +62,6 @@ class Connect:
         Returns:
             response
         """
-        messages = requests.get(self.hostname + '/get_messages?token={}thread_id={}&'.format(
+        messages = requests.get(self.hostname + '/get_messages?token={}&thread_id={}'.format(
             self.token, thread_id))
         return messages
