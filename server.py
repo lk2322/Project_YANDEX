@@ -8,12 +8,23 @@ import os
 import time
 import dotenv
 
+
+# Const check
 dotenv.load_dotenv()
 SECRET_KEY = os.getenv("SECRET_KEY")
 if not SECRET_KEY:
     print('SECRET_KEY ERROR')
     exit()
+HOST = os.getenv("HOST_IP")
+if not SECRET_KEY:
+    print('HOST_IP ERROR')
+    exit()
+
+
+#Error const
 INVALID_TOKEN_ERROR = 'invalid token'
+
+
 app = flask.Flask(__name__)
 
 
@@ -24,6 +35,7 @@ def exp_tommorow():
 def check_token(token: str):
     try:
         user = jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
+        #Проверка на время действия токена
         if user['exp'] < time.time():
             return
         else:
@@ -100,4 +112,4 @@ def messages():
 
 
 if __name__ == "__main__":
-    app.run('192.168.1.200', 80)
+    app.run(HOST, 80)

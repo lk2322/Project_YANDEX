@@ -16,8 +16,10 @@ class Main():
         self.app = main_ui.QtWidgets.QApplication(sys.argv)
         self.ui = main_ui.Ui_Form(main_ui.QtWidgets.QWidget())
         self.login_ui = login_ui.Ui_Form(login_ui.QtWidgets.QWidget())
+        #Получение логина и пароля от keyring
         user = keyring.get_password('messenger', 'user')
         password = keyring.get_password('messenger', 'password')
+
         if not password:
             self.login_ui.form.show()
         else:
@@ -33,7 +35,7 @@ class Main():
         self.ui.lineEdit_2.editingFinished.connect(self.add_thread)
 
         sys.exit(self.app.exec_())
-
+#   Настройка главного окна(установка соединения)
     def _init_main(self, user, password):
         self.ui.form.show()
         self.connection = connect.Connect(HOSTNAME, user, password)
@@ -41,6 +43,8 @@ class Main():
             self.connection.get_token()
         except connect.requests.ConnectionError:
             self.error('Не удалось подключиться к серверу')
+        #FIXME 1 update_threads обновляется только при добавлении новой беседы со стороны пользователя.
+        #Нужно сделать обновлние вместе с get_messages
         self.update_threads()
         self.timer = main_ui.QtCore.QTimer(self.ui.form)
         self.timer.start(1000)
@@ -52,6 +56,7 @@ class Main():
         sys.exit()
 
     def get_messages(self):
+        #TODO Сделать рефакторинг
         self.update_threads()
         scrol = self.ui.listWidget_2.verticalScrollBar().value()
         if scrol == self.ui.listWidget_2.verticalScrollBar().maximum():
@@ -77,6 +82,7 @@ class Main():
         self.ui.listWidget_2.verticalScrollBar().setValue(scrol)
 
     def send_message(self):
+        #TODO При исправлении FIXME1 учесть нижнюю строчку(после обновлении итемов текущий итем сбрасывается)
         thr_id = self.threads.get(self.ui.listWidget.currentItem().text())
         text = self.ui.lineEdit.text()
         if not text:
@@ -87,6 +93,7 @@ class Main():
         self.ui.lineEdit.clear()
 
     def update_threads(self):
+        #TODO Сохранять позицию скрола и текущий итем
         self.ui.listWidget.clear()
         self.threads = self.connection.get_threads().json()
         for i in self.threads:
@@ -98,6 +105,8 @@ class Main():
             return
         for i in range(self.ui.listWidget.count()):
             if self.ui.listWidget.item(i).text() == user:
+                #self.error('Текущий пользователь существует')
+                #Нужна проверка TODO
                 return
         if user == self.connection.login:
             return
@@ -112,7 +121,7 @@ class Main():
         error_dialog = main_ui.QtWidgets.QErrorMessage()
         error_dialog.showMessage(text)
         error_dialog.exec_()
-
+#TODO Передать отоброжение ошибок через self.error()
     def sign_up(self):
         self.login_ui.register_err.setText('')
         login = self.login_ui.reg_login.text()

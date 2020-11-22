@@ -1,5 +1,4 @@
 from peewee import *
-import secrets
 import datetime
 
 db = SqliteDatabase('main.db')
