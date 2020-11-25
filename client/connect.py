@@ -7,7 +7,7 @@ def check_errors(func):
     def inner(*args, **kwargs):
         res = func(*args, **kwargs)
         if res.status_code != 200:
-            raise requests.ConnectionError('Not 200 code')
+            raise requests.ConnectionError(res.content)
         return res
     return inner
 

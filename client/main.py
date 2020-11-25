@@ -65,6 +65,11 @@ class Main():
     def add_hostname(self):
         dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
         open(dotenv_path, 'w').close()
+        try:
+            connect.requests.get(self.server_ui.lineEdit.text())
+        except Exception as e:
+            self.error('Ошибка при подключении к серверу', e.__str__())
+            return
         dotenv.set_key(dotenv_path, 'HOSTNAME', self.server_ui.lineEdit.text())
         self.HOSTNAME = self.server_ui.lineEdit.text()
         self.server_ui.form.hide()
@@ -166,8 +171,8 @@ class Main():
         self.connection = connect.Connect(self.HOSTNAME, login, password)
         try:
             self.connection.register()
-        except connect.requests.ConnectionError:
-            self.login_ui.register_err.setText('Error')
+        except connect.requests.ConnectionError or connect.requests.exceptions.MissingSchema as e:
+            self.error('Ошибка', e.__str__())
             return
         self._login(password, login)
 
@@ -181,8 +186,8 @@ class Main():
             return
         try:
             self.connection.get_token()
-        except connect.requests.ConnectionError:
-            self.login_ui.login_err.setText('Error')
+        except connect.requests.ConnectionError or connect.requests.exceptions.MissingSchema as e:
+            self.error('Ошибка', e.__str__())
             return
         self._login(password, login)
 
