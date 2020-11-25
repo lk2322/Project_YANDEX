@@ -1,6 +1,8 @@
 import requests
 
-#TODO сделать конкретнве ошибки и чтоб в случае необходимости возвращал obj.json() {Для бесед и сообщений}
+# TODO сделать конкретнве ошибки и чтоб в случае необходимости возвращал obj.json() {Для бесед и сообщений}
+
+
 def check_errors(func):
     def inner(*args, **kwargs):
         res = func(*args, **kwargs)

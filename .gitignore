@@ -9,6 +9,7 @@ __pycache__/
 .vscode/
 .env
 main.db
+client/*.ui
 # Distribution / packaging
 .Python
 build/

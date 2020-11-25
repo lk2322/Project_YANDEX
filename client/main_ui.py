@@ -62,6 +62,14 @@ class Ui_Form(object):
                                                 {
                                                     background: rgba(0,0,0,0);
                                                 }""")
+#        self.listWidget.setStyleSheet("""QListWidget::item:selected
+#                                            {
+#                                                background: rgba(0,0,0,0);
+#                                            }
+#                                                QListWidget::item:hover
+#                                                {
+#                                                    background: rgba(0,0,0,0);
+#                                                }""")
 
         self.retranslateUi(Form)
         QtCore.QMetaObject.connectSlotsByName(Form)

@@ -16,12 +16,12 @@ if not SECRET_KEY:
     print('SECRET_KEY ERROR')
     exit()
 HOST = os.getenv("HOST_IP")
-if not SECRET_KEY:
+if not HOST:
     print('HOST_IP ERROR')
     exit()
 
 
-#Error const
+# Error const
 INVALID_TOKEN_ERROR = 'invalid token'
 
 
@@ -35,7 +35,7 @@ def exp_tommorow():
 def check_token(token: str):
     try:
         user = jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
-        #Проверка на время действия токена
+        # Проверка на время действия токена
         if user['exp'] < time.time():
             return
         else:

@@ -1,0 +1,5 @@
+# Client-side
+requests
+PyQt5==5.15.1
+keyring
+python-dotenv

@@ -1,9 +1,0 @@
-# Server-side
-flask
-pyjwt
-python-dotenv
-peewee
-# Client-side
-requests
-PyQt5==5.15.1
-keyring
