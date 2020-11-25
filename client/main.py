@@ -1,28 +1,43 @@
 import main_ui
 import login_ui
+import server_settings_ui
 import connect
 import sys
 import os
 import dotenv
 import keyring
 dotenv.load_dotenv()
-HOSTNAME = os.getenv('HOSTNAME')
+
+
+def check_hostname():
+    HOSTNAME = os.getenv('HOSTNAME')
+    return HOSTNAME
 
 
 class Main():
     def __init__(self):
         self.app = main_ui.QtWidgets.QApplication(sys.argv)
+        # Инициализация ui
         self.ui = main_ui.Ui_Form(main_ui.QtWidgets.QWidget())
         self.login_ui = login_ui.Ui_Form(login_ui.QtWidgets.QWidget())
+        self.server_ui = server_settings_ui.Ui_Form(
+            server_settings_ui.QtWidgets.QWidget())
+
         # Получение логина и пароля от keyring
         user = keyring.get_password('messenger', 'user')
         password = keyring.get_password('messenger', 'password')
 
-        if not password:
+        # Проверка адреса и пароля
+        self.HOSTNAME = check_hostname()
+        if (not password) or (not check_hostname()):
             self.login_ui.form.show()
         else:
+            self.HOSTNAME = check_hostname()
             self._init_main(user, password)
 
+        self.login_ui.pushButton.clicked.connect(self.server_ui.form.show)
+        self.login_ui.pushButton_2.clicked.connect(self.server_ui.form.show)
+        self.server_ui.pushButton.clicked.connect(self.add_hostname)
         self.login_ui.register_btn.clicked.connect(self.sign_up)
         self.login_ui.login_btn.clicked.connect(self.sign_in)
         self.ui.pushButton_2.clicked.connect(self.add_thread)
@@ -37,7 +52,7 @@ class Main():
 
     def _init_main(self, user, password):
         self.ui.form.show()
-        self.connection = connect.Connect(HOSTNAME, user, password)
+        self.connection = connect.Connect(self.HOSTNAME, user, password)
         try:
             self.connection.get_token()
         except connect.requests.ConnectionError:
@@ -46,6 +61,13 @@ class Main():
         self.timer = main_ui.QtCore.QTimer(self.ui.form)
         self.timer.start(1000)
         self.timer.timeout.connect(self.update_loop)
+
+    def add_hostname(self):
+        dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
+        open(dotenv_path, 'w').close()
+        dotenv.set_key(dotenv_path, 'HOSTNAME', self.server_ui.lineEdit.text())
+        self.HOSTNAME = self.server_ui.lineEdit.text()
+        self.server_ui.form.hide()
 
     def update_loop(self):
 
@@ -138,7 +160,10 @@ class Main():
         self.login_ui.register_err.setText('')
         login = self.login_ui.reg_login.text()
         password = self.login_ui.register_pass.text()
-        self.connection = connect.Connect(HOSTNAME, login, password)
+        if not self.HOSTNAME:
+            self.error('Настройте адрес сервера')
+            return
+        self.connection = connect.Connect(self.HOSTNAME, login, password)
         try:
             self.connection.register()
         except connect.requests.ConnectionError:
@@ -150,7 +175,10 @@ class Main():
         self.login_ui.login_err.setText('')
         login = self.login_ui.login_login.text()
         password = self.login_ui.login_pass.text()
-        self.connection = connect.Connect(HOSTNAME, login, password)
+        self.connection = connect.Connect(self.HOSTNAME, login, password)
+        if not self.HOSTNAME:
+            self.error('Настройте адрес сервера')
+            return
         try:
             self.connection.get_token()
         except connect.requests.ConnectionError:
