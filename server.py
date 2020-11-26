@@ -50,9 +50,11 @@ def check_login():
     login = args['login']
     passw = args['password']
     user = db.get_user(login)
-    if check_password_hash(user.pwhash, passw):
-        return jwt.encode({'username': login, 'user_id': user.id, 'exp': exp_tommorow()}, SECRET_KEY, algorithm='HS256')
-
+    try:
+        if check_password_hash(user.pwhash, passw):
+            return jwt.encode({'username': login, 'user_id': user.id, 'exp': exp_tommorow()}, SECRET_KEY, algorithm='HS256')
+    except AttributeError:
+        return flask.abort(400, 'Check password or username')
 
 @app.route('/register')
 def register():

@@ -61,7 +61,7 @@ def get_threads(user_id):
 
 
 def get_messages(thread_id):
-    messages = Message.select().where(Message.thread_id == thread_id)
+    messages = Message.select().where(Message.thread_id == thread_id).order_by(Message.time)
     messages_dict = {}
     for i in messages:
         messages_dict[i.id] = {'datetime': i.time,

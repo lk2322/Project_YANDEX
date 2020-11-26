@@ -48,4 +48,4 @@ class Ui_Form(object):
         _translate = QtCore.QCoreApplication.translate
         Form.setWindowTitle(_translate("Form", "Form"))
         self.pushButton.setText(_translate("Form", "Ok"))
-        self.label.setText(_translate("Form", "Адрес сервера"))
+        self.label.setText(_translate("Form", "Адрес сервера (прим. http://127.0.0.1)"))

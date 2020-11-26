@@ -35,11 +35,13 @@ class Main():
             self.HOSTNAME = check_hostname()
             self._init_main(user, password)
 
+        # Всякие переменные
+        self.last_messages = {}
+
         self.login_ui.pushButton.clicked.connect(self.server_ui.form.show)
-        self.login_ui.pushButton_2.clicked.connect(self.server_ui.form.show)
         self.server_ui.pushButton.clicked.connect(self.add_hostname)
-        self.login_ui.register_btn.clicked.connect(self.sign_up)
-        self.login_ui.login_btn.clicked.connect(self.sign_in)
+        self.login_ui.register_btn.clicked.connect(self.sign_in_up)
+        self.login_ui.login_btn.clicked.connect(self.sign_in_up)
         self.ui.pushButton_2.clicked.connect(self.add_thread)
         self.ui.listWidget.currentItemChanged.connect(self.update_loop)
         self.ui.pushButton.clicked.connect(self.send_message)
@@ -58,6 +60,7 @@ class Main():
         except connect.requests.ConnectionError:
             self.error('Не удалось подключиться к серверу')
         self.update_threads()
+        # Цикл обновления
         self.timer = main_ui.QtCore.QTimer(self.ui.form)
         self.timer.start(1000)
         self.timer.timeout.connect(self.update_loop)
@@ -75,7 +78,6 @@ class Main():
         self.server_ui.form.hide()
 
     def update_loop(self):
-
         self.update_threads()
         self.get_messages()
 
@@ -83,6 +85,20 @@ class Main():
         keyring.delete_password('messenger', 'user')
         keyring.delete_password('messenger', 'password')
         sys.exit()
+
+    def add_messages_to_list(self, messages):
+        for i in messages:
+            item = main_ui.QCustomQWidget()
+            item.setTextUp(messages[i]['username'])
+            if messages[i]['username'] == self.connection.login:
+                item.textUpQLabel.setStyleSheet('color: rgb(7,82,1);')
+                item.setTextUp('Вы')
+            item.setTextDown(messages[i]['text'])
+            myQListWidgetItem = main_ui.QtWidgets.QListWidgetItem(
+                self.ui.listWidget_2)
+            myQListWidgetItem.setSizeHint(item.sizeHint())
+            self.ui.listWidget_2.addItem(myQListWidgetItem)
+            self.ui.listWidget_2.setItemWidget(myQListWidgetItem, item)
 
     def get_messages(self):
         # TODO Сделать рефакторинг
@@ -94,19 +110,14 @@ class Main():
         except AttributeError:
             return
         thr_id = self.threads.get(thread)
-        messages = self.connection.get_messages(thr_id).json()
+        messages = self.connection.get_messages(thr_id)
+        if messages == self.last_messages:
+            return
+        self.last_messages = messages
         self.ui.listWidget_2.clear()
-        for i in messages:
-            item = main_ui.QCustomQWidget()
-            item.setTextUp(messages[i]['username'])
-            if messages[i]['username'] == self.connection.login:
-                item.textUpQLabel.setStyleSheet('color: rgb(255, 0, 0);')
-            item.setTextDown(messages[i]['text'])
-            myQListWidgetItem = main_ui.QtWidgets.QListWidgetItem(
-                self.ui.listWidget_2)
-            myQListWidgetItem.setSizeHint(item.sizeHint())
-            self.ui.listWidget_2.addItem(myQListWidgetItem)
-            self.ui.listWidget_2.setItemWidget(myQListWidgetItem, item)
+
+        self.add_messages_to_list(messages)
+
         self.ui.listWidget_2.repaint()
         self.ui.listWidget_2.verticalScrollBar().setValue(scrol)
 
@@ -130,7 +141,7 @@ class Main():
         except AttributeError:
             pass
         self.ui.listWidget.clear()
-        self.threads = self.connection.get_threads().json()
+        self.threads = self.connection.get_threads()
         for i in self.threads:
             self.ui.listWidget.addItem(i)
         self.ui.listWidget.repaint()
@@ -159,25 +170,8 @@ class Main():
         error_dialog.setText(text)
         error_dialog.setDetailedText(e)
         error_dialog.exec_()
-# TODO Передать отоброжение ошибок через self.error()
 
-    def sign_up(self):
-        self.login_ui.register_err.setText('')
-        login = self.login_ui.reg_login.text()
-        password = self.login_ui.register_pass.text()
-        if not self.HOSTNAME:
-            self.error('Настройте адрес сервера')
-            return
-        self.connection = connect.Connect(self.HOSTNAME, login, password)
-        try:
-            self.connection.register()
-        except connect.requests.ConnectionError or connect.requests.exceptions.MissingSchema as e:
-            self.error('Ошибка', e.__str__())
-            return
-        self._login(password, login)
-
-    def sign_in(self):
-        self.login_ui.login_err.setText('')
+    def sign_in_up(self):
         login = self.login_ui.login_login.text()
         password = self.login_ui.login_pass.text()
         self.connection = connect.Connect(self.HOSTNAME, login, password)
@@ -185,7 +179,10 @@ class Main():
             self.error('Настройте адрес сервера')
             return
         try:
-            self.connection.get_token()
+            if self.login_ui.form.sender().objectName() == 'login_btn':
+                self.connection.get_token()
+            else:
+                self.connection.register()
         except connect.requests.ConnectionError or connect.requests.exceptions.MissingSchema as e:
             self.error('Ошибка', e.__str__())
             return

@@ -1,7 +1,5 @@
 import requests
 
-# TODO сделать конкретнве ошибки и чтоб в случае необходимости возвращал obj.json() {Для бесед и сообщений}
-
 
 def check_errors(func):
     def inner(*args, **kwargs):
@@ -44,7 +42,7 @@ class Connect:
         return response
 
     @check_errors
-    def get_threads(self):
+    def get_threads_r(self):
         """Return requsts object. obj.json() need
 
         Returns:
@@ -55,7 +53,7 @@ class Connect:
         return threads
 
     @check_errors
-    def get_messages(self, thread_id):
+    def get_messages_r(self, thread_id):
         """Return requsts object. obj.json() need
 
         Args:
@@ -67,3 +65,9 @@ class Connect:
         messages = requests.get(self.hostname + '/get_messages?token={}&thread_id={}'.format(
             self.token, thread_id))
         return messages
+
+    def get_messages(self, thread_id):
+        return self.get_messages_r(thread_id).json()
+    
+    def get_threads(self):
+        return self.get_threads_r().json()
