@@ -16,6 +16,11 @@ def check_hostname():
 
 class Main():
     def __init__(self):
+
+        # Всякие переменные
+        self.last_messages = {}
+        self.error_open = False
+
         self.app = main_ui.QtWidgets.QApplication(sys.argv)
         # Инициализация ui
         self.ui = main_ui.Ui_Form(main_ui.QtWidgets.QWidget())
@@ -34,9 +39,6 @@ class Main():
         else:
             self.HOSTNAME = check_hostname()
             self._init_main(user, password)
-
-        # Всякие переменные
-        self.last_messages = {}
 
         self.login_ui.pushButton.clicked.connect(self.server_ui.form.show)
         self.server_ui.pushButton.clicked.connect(self.add_hostname)
@@ -78,8 +80,13 @@ class Main():
         self.server_ui.form.hide()
 
     def update_loop(self):
-        self.update_threads()
-        self.get_messages()
+        try:
+            self.update_threads()
+            self.get_messages()
+        except Exception as e:
+            self.timer.stop()
+            self.error('Соединение с сервером потеряно', e.__str__())
+            sys.exit()
 
     def out(self):
         keyring.delete_password('messenger', 'user')
@@ -161,15 +168,20 @@ class Main():
             self.connection.new_thread(user)
         except connect.requests.exceptions.ConnectionError as e:
             self.error('Пользователь не найден!', e.__str__())
+            return
         self.update_threads()
         self.ui.lineEdit_2.clear()
 
     def error(self, text, e=''):
+        if self.error_open:
+            return
+        self.error_open = True
         error_dialog = main_ui.QtWidgets.QMessageBox()
         error_dialog.setWindowTitle('Ошибка')
         error_dialog.setText(text)
         error_dialog.setDetailedText(e)
         error_dialog.exec_()
+        self.error_open = False
 
     def sign_in_up(self):
         login = self.login_ui.login_login.text()

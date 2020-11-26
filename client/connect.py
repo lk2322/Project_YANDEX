@@ -68,6 +68,6 @@ class Connect:
 
     def get_messages(self, thread_id):
         return self.get_messages_r(thread_id).json()
-    
+
     def get_threads(self):
         return self.get_threads_r().json()

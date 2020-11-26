@@ -44,6 +44,18 @@ def check_token(token: str):
         return
 
 
+def check_valid(func):
+    def check_token_decorator(*args, **kwargs):
+        args_f = flask.request.args
+        token = args_f['token']
+        user = check_token(token)
+        flask.request.user = user
+        if not user:
+            return flask.abort(400, INVALID_TOKEN_ERROR)
+        return func(*args, **kwargs)
+    return check_token_decorator
+
+
 @app.route('/login')
 def check_login():
     args = flask.request.args
@@ -52,9 +64,11 @@ def check_login():
     user = db.get_user(login)
     try:
         if check_password_hash(user.pwhash, passw):
-            return jwt.encode({'username': login, 'user_id': user.id, 'exp': exp_tommorow()}, SECRET_KEY, algorithm='HS256')
+            return jwt.encode({'username': login, 'user_id': user.id, 'exp': exp_tommorow()},
+                              SECRET_KEY, algorithm='HS256')
     except AttributeError:
         return flask.abort(400, 'Check password or username')
+
 
 @app.route('/register')
 def register():
@@ -67,49 +81,41 @@ def register():
     return 'ok'
 
 
-@app.route('/new_thread')
+@app.route('/new_thread', endpoint='create_thread')
+@check_valid
 def create_thread():
     args = flask.request.args
-    token = args['token']
     username = args['username']
-    user = check_token(token)
-    if not user:
-        return flask.abort(400, INVALID_TOKEN_ERROR)
-    db.create_thread(user['username'], username)
+    user = flask.request.user
+    try:
+        db.create_thread(user['username'], username)
+    except Exception:
+        return flask.abort(400, 'user not found')
     return 'ok'
 
 
-@app.route('/send_message')
+@app.route('/send_message', endpoint='send_message')
+@check_valid
 def send_message():
     args = flask.request.args
-    token = args['token']
     text = args['text']
     thread_id = args['thread_id']
-    user = check_token(token)
-    if not user:
-        return flask.abort(400, INVALID_TOKEN_ERROR)
+    user = flask.request.user
     db.create_message(text, thread_id, user['user_id'])
     return 'ok'
 
 
-@app.route('/get_threads')
+@app.route('/get_threads', endpoint='get_thread')
+@check_valid
 def get_thread():
-    args = flask.request.args
-    token = args['token']
-    user = check_token(token)
-    if not user:
-        return flask.abort(400, INVALID_TOKEN_ERROR)
+    user = flask.request.user
     return db.get_threads(user['user_id'])
 
 
-@app.route('/get_messages')
+@app.route('/get_messages', endpoint='messages')
+@check_valid
 def messages():
-    args = flask.request.args
-    token = args['token']
-    thread_id = args['thread_id']
-    user = check_token(token)
-    if not user:
-        return flask.abort(400, INVALID_TOKEN_ERROR)
+    thread_id = flask.request.args['thread_id']
     return db.get_messages(thread_id)
 
 
