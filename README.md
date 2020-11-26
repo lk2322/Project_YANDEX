@@ -3,7 +3,7 @@
 
 <div>
 
-[![Status](https://img.shields.io/badge/status-active-success.svg)]() [![GitHub Issues](https://img.shields.io/github/issues/lk2322/Project_YANDEX)](https://github.com/lk2322/Project_YANDEX/issues)
+[![Status](https://img.shields.io/badge/status-active-success.svg)]() [![GitHub Issues](https://img.shields.io/github/issues/lk2322/Project_YANDEX)](https://github.com/lk2322/Project_YANDEX/issues) ![Lines of code](https://img.shields.io/tokei/lines/github/lk2322/Project_YANDEX)
 
 </div>
 
