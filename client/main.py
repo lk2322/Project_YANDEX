@@ -48,8 +48,8 @@ class Main():
         self.ui.listWidget.currentItemChanged.connect(self.update_loop)
         self.ui.pushButton.clicked.connect(self.send_message)
         self.ui.pushButton_3.clicked.connect(self.out)
-        self.ui.lineEdit.editingFinished.connect(self.send_message)
-        self.ui.lineEdit_2.editingFinished.connect(self.add_thread)
+        self.ui.lineEdit.returnPressed.connect(self.send_message)
+        self.ui.lineEdit_2.returnPressed.connect(self.add_thread)
 
         sys.exit(self.app.exec_())
 #   Настройка главного окна(установка соединения)
@@ -173,15 +173,11 @@ class Main():
         self.ui.lineEdit_2.clear()
 
     def error(self, text, e=''):
-        if self.error_open:
-            return
-        self.error_open = True
         error_dialog = main_ui.QtWidgets.QMessageBox()
         error_dialog.setWindowTitle('Ошибка')
         error_dialog.setText(text)
         error_dialog.setDetailedText(e)
         error_dialog.exec_()
-        self.error_open = False
 
     def sign_in_up(self):
         login = self.login_ui.login_login.text()
