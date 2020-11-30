@@ -1,4 +1,5 @@
 from peewee import *
+from typing import List
 import datetime
 
 db = SqliteDatabase('main.db')
@@ -30,7 +31,7 @@ class Message(BaseModel):
     time = DateTimeField()
 
 
-def get_user(login):
+def get_user(login: str):
     db.connect(reuse_if_open=True)
     try:
         user = User.get(User.username == login)
@@ -40,7 +41,7 @@ def get_user(login):
     return user
 
 
-def create_thread(*usrnames):
+def create_thread(*usrnames: List[int]):
     db.connect(reuse_if_open=True)
     thread = Thread.create()
     for i in usrnames:
@@ -48,7 +49,7 @@ def create_thread(*usrnames):
     db.close()
 
 
-def get_threads(user_id):
+def get_threads(user_id: int):
     threads = Thread.select().join(Participant).where(Participant.user_id == user_id)
     threads_dict = {}
     for i in threads:
@@ -60,7 +61,7 @@ def get_threads(user_id):
     return threads_dict
 
 
-def get_messages(thread_id):
+def get_messages(thread_id: int) -> dict:
     messages = Message.select().where(Message.thread_id == thread_id).order_by(Message.time)
     messages_dict = {}
     for i in messages:
@@ -71,14 +72,14 @@ def get_messages(thread_id):
     return messages_dict
 
 
-def create_message(text, thread_id, from_id):
+def create_message(text: str, thread_id: int, from_id: int) -> None:
     db.connect(reuse_if_open=True)
     Message.create(thread_id=thread_id, text=text,
                    user_id=from_id, time=datetime.datetime.now())
     db.close()
 
 
-def create_user(login, pwhash):
+def create_user(login: str, pwhash: str):
     db.connect(reuse_if_open=True)
     User.create(username=login, pwhash=pwhash)
     db.close()

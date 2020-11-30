@@ -6,6 +6,7 @@ import sys
 import os
 import dotenv
 import keyring
+import typing
 dotenv.load_dotenv()
 
 
@@ -54,7 +55,7 @@ class Main():
         sys.exit(self.app.exec_())
 #   Настройка главного окна(установка соединения)
 
-    def _init_main(self, user, password):
+    def _init_main(self, user: str, password: str):
         self.ui.form.show()
         self.connection = connect.Connect(self.HOSTNAME, user, password)
         try:
@@ -93,7 +94,12 @@ class Main():
         keyring.delete_password('messenger', 'password')
         sys.exit()
 
-    def add_messages_to_list(self, messages):
+    def add_messages_to_list(self, messages: dict):
+        """Добавляет сообщения в listwidget
+
+        Args:
+            messages (dict): Словарь с сообщениями
+        """
         for i in messages:
             item = main_ui.QCustomQWidget()
             item.setTextUp(messages[i]['username'])
@@ -172,7 +178,13 @@ class Main():
         self.update_threads()
         self.ui.lineEdit_2.clear()
 
-    def error(self, text, e=''):
+    def error(self, text: str, e=''):
+        """error windows
+
+        Args:
+            text (str): text error
+            e (str, optional): additional information about the error. Defaults to ''.
+        """
         error_dialog = main_ui.QtWidgets.QMessageBox()
         error_dialog.setWindowTitle('Ошибка')
         error_dialog.setText(text)
@@ -180,6 +192,7 @@ class Main():
         error_dialog.exec_()
 
     def sign_in_up(self):
+        """Функция для регистрации или входа"""
         login = self.login_ui.login_login.text()
         password = self.login_ui.login_pass.text()
         self.connection = connect.Connect(self.HOSTNAME, login, password)
@@ -196,7 +209,7 @@ class Main():
             return
         self._login(password, login)
 
-    def _login(self, password, login):
+    def _login(self, password: str, login: str):
         self.login_ui.form.hide()
         keyring.set_password('messenger', 'password', password)
         keyring.set_password('messenger', 'user', login)

@@ -33,6 +33,12 @@ def exp_tommorow():
 
 
 def check_token(token: str):
+    """Проверка jwt токена
+
+    Args:
+        token (str):
+
+    """
     try:
         user = jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
         # Проверка на время действия токена
@@ -45,6 +51,8 @@ def check_token(token: str):
 
 
 def check_valid(func):
+    """Декоратор для проверки валидности токена
+    """
     def check_token_decorator(*args, **kwargs):
         args_f = flask.request.args
         token = args_f['token']
