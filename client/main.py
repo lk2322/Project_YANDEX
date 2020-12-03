@@ -7,12 +7,31 @@ import os
 import dotenv
 import keyring
 import typing
+from functools import wraps
 dotenv.load_dotenv()
 
 
 def check_hostname():
     HOSTNAME = os.getenv('HOSTNAME')
     return HOSTNAME
+
+
+# Выглядит как костыль, но другого я не смог придумать
+def decorator_scroll(func):
+    @wraps(func)
+    def wrapper(self, *args, **kwargs):
+        if func.__name__ == 'get_messages':
+            listWidget = self.ui.listWidget_2
+        elif func.__name__ == 'update_threads':
+            listWidget = self.ui.listWidget
+        scrol = listWidget.verticalScrollBar().value()
+        if scrol == listWidget.verticalScrollBar().maximum():
+            scrol += 1
+        res = func(self, *args, **kwargs)
+        listWidget.repaint()
+        listWidget.verticalScrollBar().setValue(scrol)
+        return res
+    return wrapper
 
 
 class Main():
@@ -41,6 +60,7 @@ class Main():
             self.HOSTNAME = check_hostname()
             self._init_main(user, password)
 
+        # События
         self.login_ui.pushButton.clicked.connect(self.server_ui.form.show)
         self.server_ui.pushButton.clicked.connect(self.add_hostname)
         self.login_ui.register_btn.clicked.connect(self.sign_in_up)
@@ -113,11 +133,10 @@ class Main():
             self.ui.listWidget_2.addItem(myQListWidgetItem)
             self.ui.listWidget_2.setItemWidget(myQListWidgetItem, item)
 
+    # НЕ МЕНЯТЬ ИМЯ МЕТОДА
+    @decorator_scroll
     def get_messages(self):
         # TODO Сделать рефакторинг
-        scrol = self.ui.listWidget_2.verticalScrollBar().value()
-        if scrol == self.ui.listWidget_2.verticalScrollBar().maximum():
-            scrol += 1
         try:
             thread = self.currentUser
         except AttributeError:
@@ -131,8 +150,18 @@ class Main():
 
         self.add_messages_to_list(messages)
 
-        self.ui.listWidget_2.repaint()
-        self.ui.listWidget_2.verticalScrollBar().setValue(scrol)
+    # НЕ МЕНЯТЬ ИМЯ МЕТОДА
+    @decorator_scroll
+    def update_threads(self):
+        # Сохраняет  текущий итем
+        try:
+            self.currentUser = self.ui.listWidget.currentItem().text()
+        except AttributeError:
+            pass
+        self.ui.listWidget.clear()
+        self.threads = self.connection.get_threads()
+        for i in self.threads:
+            self.ui.listWidget.addItem(i)
 
     def send_message(self):
         thr_id = self.threads.get(self.currentUser)
@@ -143,22 +172,6 @@ class Main():
 
         self.get_messages()
         self.ui.lineEdit.clear()
-
-    def update_threads(self):
-        scrol = self.ui.listWidget.verticalScrollBar().value()
-        if scrol == self.ui.listWidget.verticalScrollBar().maximum():
-            scrol += 1
-        # Сохраняет  текущий итем
-        try:
-            self.currentUser = self.ui.listWidget.currentItem().text()
-        except AttributeError:
-            pass
-        self.ui.listWidget.clear()
-        self.threads = self.connection.get_threads()
-        for i in self.threads:
-            self.ui.listWidget.addItem(i)
-        self.ui.listWidget.repaint()
-        self.ui.listWidget.verticalScrollBar().setValue(scrol)
 
     def add_thread(self):
         user = self.ui.lineEdit_2.text()
