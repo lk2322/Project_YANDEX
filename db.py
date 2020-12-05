@@ -41,7 +41,7 @@ def get_user(login: str):
     return user
 
 
-def create_thread(*usrnames: List[int]):
+def create_thread(*usrnames: List[str]):
     db.connect(reuse_if_open=True)
     thread = Thread.create()
     for i in usrnames:
@@ -85,7 +85,5 @@ def create_user(login: str, pwhash: str):
     db.close()
 
 
-if __name__ == "__main__":
+def init():
     db.create_tables([User, Thread, Participant, Message])
-    a = get_threads(1)
-    print(a)

@@ -26,9 +26,15 @@ INVALID_TOKEN_ERROR = 'invalid token'
 
 
 app = flask.Flask(__name__)
+db.init()
 
 
 def exp_tommorow():
+    """вернёт время через 24 часа
+
+    Returns:
+        datetime: Время через 24 часа
+    """
     return datetime.datetime.now() + datetime.timedelta(days=1)
 
 
@@ -38,6 +44,15 @@ def check_token(token: str):
     Args:
         token (str):
 
+    Returns:
+        dict: Словарь с полями
+        {
+            'username': str,
+            'user_id': int,
+            'exp': int
+        }
+        Или
+        None: Тогда токен недействителен
     """
     try:
         user = jwt.decode(token, SECRET_KEY, algorithms=['HS256'])

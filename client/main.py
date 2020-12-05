@@ -16,30 +16,13 @@ def check_hostname():
     return HOSTNAME
 
 
-# Выглядит как костыль, но другого я не смог придумать
-def decorator_scroll(func):
-    @wraps(func)
-    def wrapper(self, *args, **kwargs):
-        if func.__name__ == 'get_messages':
-            listWidget = self.ui.listWidget_2
-        elif func.__name__ == 'update_threads':
-            listWidget = self.ui.listWidget
-        scrol = listWidget.verticalScrollBar().value()
-        if scrol == listWidget.verticalScrollBar().maximum():
-            scrol += 1
-        res = func(self, *args, **kwargs)
-        listWidget.repaint()
-        listWidget.verticalScrollBar().setValue(scrol)
-        return res
-    return wrapper
-
-
 class Main():
     def __init__(self):
 
         # Всякие переменные
         self.last_messages = {}
         self.error_open = False
+        self.listWidgets = {}
 
         self.app = main_ui.QtWidgets.QApplication(sys.argv)
         # Инициализация ui
@@ -60,8 +43,11 @@ class Main():
             self.HOSTNAME = check_hostname()
             self._init_main(user, password)
 
+        # closeEvent для  server_ui
+        self.server_ui.form.closeEvent = self.closeEvent_s
+
         # События
-        self.login_ui.pushButton.clicked.connect(self.server_ui.form.show)
+        self.login_ui.pushButton.clicked.connect(self.hostname_form)
         self.server_ui.pushButton.clicked.connect(self.add_hostname)
         self.login_ui.register_btn.clicked.connect(self.sign_in_up)
         self.login_ui.login_btn.clicked.connect(self.sign_in_up)
@@ -73,8 +59,17 @@ class Main():
         self.ui.lineEdit_2.returnPressed.connect(self.add_thread)
 
         sys.exit(self.app.exec_())
-#   Настройка главного окна(установка соединения)
 
+    # Кастомный closeEvent
+    def closeEvent_s(self, *args, **kwargs):
+        self.login_ui.form.show()
+        self.server_ui.form.hide()
+
+    def hostname_form(self):
+        self.server_ui.form.show()
+        self.login_ui.form.hide()
+
+#   Настройка главного окна(установка соединения)
     def _init_main(self, user: str, password: str):
         self.ui.form.show()
         self.connection = connect.Connect(self.HOSTNAME, user, password)
@@ -99,8 +94,10 @@ class Main():
         dotenv.set_key(dotenv_path, 'HOSTNAME', self.server_ui.lineEdit.text())
         self.HOSTNAME = self.server_ui.lineEdit.text()
         self.server_ui.form.hide()
+        self.login_ui.form.show()
 
     def update_loop(self):
+        # Цикл обновления инфы
         try:
             self.update_threads()
             self.get_messages()
@@ -119,6 +116,12 @@ class Main():
 
         Args:
             messages (dict): Словарь с сообщениями
+            В messages хранятся словари вида
+            {message_id (int): {'datetime': int,
+                               'text': str,
+                               'user_id': int,
+                               'username': str}
+            }
         """
         for i in messages:
             item = main_ui.QCustomQWidget()
@@ -133,10 +136,8 @@ class Main():
             self.ui.listWidget_2.addItem(myQListWidgetItem)
             self.ui.listWidget_2.setItemWidget(myQListWidgetItem, item)
 
-    # НЕ МЕНЯТЬ ИМЯ МЕТОДА
-    @decorator_scroll
     def get_messages(self):
-        # TODO Сделать рефакторинг
+        scroll = self.save_scroll(self.ui.listWidget_2)
         try:
             thread = self.currentUser
         except AttributeError:
@@ -146,22 +147,57 @@ class Main():
         if messages == self.last_messages:
             return
         self.last_messages = messages
+        # Отключает перерисовку на время обновления
+        self.ui.listWidget_2.setUpdatesEnabled(False)
+
         self.ui.listWidget_2.clear()
-
         self.add_messages_to_list(messages)
+        self.set_scroll(self.ui.listWidget_2, scroll)
+        # Включает
+        self.ui.listWidget_2.setUpdatesEnabled(True)
 
-    # НЕ МЕНЯТЬ ИМЯ МЕТОДА
-    @decorator_scroll
     def update_threads(self):
+        scroll = self.save_scroll(self.ui.listWidget)
         # Сохраняет  текущий итем
         try:
             self.currentUser = self.ui.listWidget.currentItem().text()
         except AttributeError:
             pass
+        # Отключает перерисовку на время обновления
+        self.ui.listWidget.setUpdatesEnabled(False)
+
         self.ui.listWidget.clear()
         self.threads = self.connection.get_threads()
         for i in self.threads:
             self.ui.listWidget.addItem(i)
+        self.set_scroll(self.ui.listWidget, scroll)
+        # Включает
+        self.ui.listWidget.setUpdatesEnabled(True)
+
+    def save_scroll(self, listWidget: main_ui.QtWidgets.QListWidget):
+        """Отдаёт позицию скрола
+
+        Args:
+            listWidget (main_ui.QtWidgets.QListWidget): [description]
+        return:
+            int or str
+        """
+        scroll = listWidget.verticalScrollBar().value()
+        if scroll == listWidget.verticalScrollBar().maximum():
+            scroll = 'max'
+        return scroll
+
+    def set_scroll(self, listWidget: main_ui.QtWidgets.QListWidget, scroll: typing.Union[int, str]):
+        """Ставит скрол на своё место
+
+        Args:
+            listWidget (main_ui.QtWidgets.QListWidget):
+            scroll (typing.Union[int, str]): позиция скрола
+        """
+        if scroll == 'max':
+            listWidget.scrollToBottom()
+        else:
+            listWidget.verticalScrollBar().setValue(scroll)
 
     def send_message(self):
         thr_id = self.threads.get(self.currentUser)
@@ -181,6 +217,7 @@ class Main():
             if self.ui.listWidget.item(i).text() == user:
                 self.error('Текущий пользователь существует')
                 return
+        # Проверка на добавление самого себя
         if user == self.connection.login:
             return
         try:
@@ -192,7 +229,7 @@ class Main():
         self.ui.lineEdit_2.clear()
 
     def error(self, text: str, e=''):
-        """error windows
+        """error window
 
         Args:
             text (str): text error
